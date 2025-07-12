@@ -10,17 +10,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ProgressBarAndroid, // Android progress bar
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { WebView } from 'react-native-webview';
+import { useRouter } from 'expo-router';
 
 export default function GenerateScreen() {
   const [photo, setPhoto] = useState(null);
   const [licenseKey, setLicenseKey] = useState('');
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [resultUri, setResultUri] = useState(null);
   const [status, setStatus] = useState('');
-  const [showPayment, setShowPayment] = useState(false);
+  const router = useRouter();
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -31,17 +33,20 @@ export default function GenerateScreen() {
     if (!result.canceled) {
       setPhoto(result.assets[0]);
       setResultUri(null);
+      setStatus('');
+      setProgress(0);
     }
   };
 
   const handleGenerate = async () => {
     if (!photo || !licenseKey) {
-      setStatus('📷 Upload a photo and paste your license key.');
+      setStatus('📷 Please upload a photo and enter your license key.');
       return;
     }
 
     setLoading(true);
     setStatus('🧠 Generating your AI headshot...');
+    setProgress(0.2);
 
     try {
       const formData = new FormData();
@@ -52,38 +57,39 @@ export default function GenerateScreen() {
       });
       formData.append('license_key', licenseKey);
 
+      setProgress(0.4);
+
       const response = await fetch('https://profaceapp.onrender.com/api/generate', {
         method: 'POST',
         body: formData,
       });
 
+      setProgress(0.7);
+
       const data = await response.json();
+
       if (data?.result_url) {
         setResultUri(data.result_url);
         setStatus('✅ Your AI headshot is ready!');
+        setProgress(1);
       } else {
-        setStatus('❌ Error generating headshot.');
+        setStatus('❌ Failed to generate headshot. Please check your license key or try again.');
+        setProgress(0);
       }
     } catch (error) {
-      setStatus('❌ Server error.');
+      setStatus('❌ Server error. Please try again later.');
+      setProgress(0);
     }
 
     setLoading(false);
   };
 
-  if (showPayment) {
-    return (
-      <WebView
-        source={{ uri: 'https://profaceapp.gumroad.com/l/proface' }}
-        style={{ flex: 1 }}
-        onNavigationStateChange={(navState) => {
-          if (navState.url.includes('thank_you')) {
-            setShowPayment(false);
-          }
-        }}
-      />
-    );
-  }
+  const handleReset = () => {
+    setPhoto(null);
+    setResultUri(null);
+    setStatus('');
+    setProgress(0);
+  };
 
   return (
     <KeyboardAvoidingView
@@ -98,40 +104,50 @@ export default function GenerateScreen() {
 
         <Text style={styles.slogan}>AI professional headshots</Text>
 
-        <Text style={styles.step}>1. Upload your photo</Text>
-        <TouchableOpacity onPress={pickImage} style={styles.uploadBtn}>
-          <Text style={styles.btnText}>Upload your photo</Text>
-        </TouchableOpacity>
+        {!resultUri && (
+          <>
+            <TouchableOpacity onPress={pickImage} style={styles.uploadBtn}>
+              <Text style={styles.btnText}> Upload your photo</Text>
+            </TouchableOpacity>
 
-        <Text style={styles.step}>2. Get your license key</Text>
-        <TouchableOpacity onPress={() => setShowPayment(true)}>
-          <Text style={styles.licenseLink}>🔑 Get your license key</Text>
-        </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/GumroadScreen')}>
+              <Text style={styles.licenseLink}>🔑 Get your license key</Text>
+            </TouchableOpacity>
 
-        <TextInput
-          placeholder="Paste your license key"
-          style={styles.input}
-          value={licenseKey}
-          onChangeText={setLicenseKey}
-        />
+            <TextInput
+              placeholder="Paste your license key"
+              style={styles.input}
+              value={licenseKey}
+              onChangeText={setLicenseKey}
+            />
 
-        <Text style={styles.step}>3. Generate</Text>
-        <TouchableOpacity
-          onPress={handleGenerate}
-          style={styles.generateBtn}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.btnText}>🚀 Generate</Text>
-          )}
-        </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleGenerate}
+              style={styles.generateBtn}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.btnText}>🚀 Generate</Text>
+              )}
+            </TouchableOpacity>
+          </>
+        )}
+
+        {loading && Platform.OS === 'android' && (
+          <ProgressBarAndroid styleAttr="Horizontal" color="#00c49a" indeterminate={false} progress={progress} />
+        )}
 
         {status !== '' && <Text style={styles.status}>{status}</Text>}
 
         {resultUri && (
-          <Image source={{ uri: resultUri }} style={styles.result} />
+          <>
+            <Image source={{ uri: resultUri }} style={styles.result} />
+            <TouchableOpacity onPress={handleReset} style={styles.againBtn}>
+              <Text style={styles.btnText}>🔁 Generate another photo</Text>
+            </TouchableOpacity>
+          </>
         )}
       </ScrollView>
     </KeyboardAvoidingView>
@@ -149,8 +165,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logo: {
-    width: 180,
-    height: 180,
+    width: 200,
+    height: 200,
     marginBottom: 12,
     resizeMode: 'contain',
   },
@@ -159,12 +175,6 @@ const styles = StyleSheet.create({
     color: '#ccc',
     marginBottom: 30,
     textAlign: 'center',
-  },
-  step: {
-    fontSize: 16,
-    fontWeight: '600',
-    alignSelf: 'flex-start',
-    marginBottom: 8,
   },
   uploadBtn: {
     backgroundColor: '#477aefff',
@@ -180,6 +190,8 @@ const styles = StyleSheet.create({
     padding: 10,
     width: '100%',
     marginBottom: 16,
+    borderColor: '#ccc',
+    borderWidth: 1,
   },
   licenseLink: {
     color: '#070707ff',
@@ -192,7 +204,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: '100%',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 20,
+  },
+  againBtn: {
+    backgroundColor: '#2e64e5',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
   },
   btnText: {
     color: '#fff',
@@ -200,7 +220,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   status: {
-    color: '#ccc',
+    color: '#333',
     marginBottom: 10,
     textAlign: 'center',
   },
