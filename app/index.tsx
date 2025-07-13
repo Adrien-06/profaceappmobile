@@ -8,25 +8,19 @@ export default function WelcomeScreen() {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../assets/images/logo.png')}
+        source={require('../assets/images/logo.png' )}
         style={styles.logo}
       />
 
       <Image
-        source={{ uri: 'https://i.ibb.co/3yjPH3Ht/Design-sans-titre-8.png' }}
+        source={{ uri: 'https://i.ibb.co/qfBXprq/Design-sans-titre-10.png' }}
         style={styles.banner}
-      />
-
-      {/* ✅ Deuxième image ajoutée ici */}
-      <Image
-        source={{ uri: 'https://i.ibb.co/s94hWmzK/Design-sans-titre-9.png' }}
-        style={styles.bannerSecondary}
       />
 
       <Text style={styles.title}>AI professional headshots</Text>
 
       <TouchableOpacity onPress={() => router.push('/generate')} style={styles.button}>
-        <Text style={styles.buttonText}>GET IT</Text>
+        <Text style={styles.buttonText}>START</Text>
       </TouchableOpacity>
     </View>
   );
@@ -43,25 +37,21 @@ const styles = StyleSheet.create({
   logo: {
     width: 240,
     height: 240,
-    marginBottom: 20,
-    resizeMode: 'contain',
-  },
-  banner: {
-    width: 400,
-    height: 150,
     marginBottom: 10,
     resizeMode: 'contain',
   },
-  bannerSecondary: {
-    width: 400,
-    height: 150,
-    marginBottom: 50,
+  banner: {
+    width: 320,
+    height: 320,
+    marginBottom: 30,
     resizeMode: 'contain',
   },
   title: {
     fontSize: 24,
-    marginBottom: 60,
+    color: '#aaa',
+    marginBottom: 30,
     textAlign: 'center',
+    
   },
   button: {
     backgroundColor: '#2e64e5',
@@ -71,7 +61,9 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
   },
 });
+
+
