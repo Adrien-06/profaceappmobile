@@ -8,13 +8,19 @@ export default function WelcomeScreen() {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../assets/images/logo.png' )}
+        source={require('../assets/images/logo.png')}
         style={styles.logo}
       />
 
       <Image
-        source={{ uri: 'https://i.ibb.co/JjzYWnr4/Design-sans-titre-4.png' }}
+        source={{ uri: 'https://i.ibb.co/3yjPH3Ht/Design-sans-titre-8.png' }}
         style={styles.banner}
+      />
+
+      {/* ✅ Deuxième image ajoutée ici */}
+      <Image
+        source={{ uri: 'https://i.ibb.co/s94hWmzK/Design-sans-titre-9.png' }}
+        style={styles.bannerSecondary}
       />
 
       <Text style={styles.title}>AI professional headshots</Text>
@@ -37,18 +43,24 @@ const styles = StyleSheet.create({
   logo: {
     width: 240,
     height: 240,
-    marginBottom: 0,
+    marginBottom: 20,
     resizeMode: 'contain',
   },
   banner: {
     width: 400,
     height: 150,
-    marginBottom: 0,
+    marginBottom: 10,
+    resizeMode: 'contain',
+  },
+  bannerSecondary: {
+    width: 400,
+    height: 150,
+    marginBottom: 50,
     resizeMode: 'contain',
   },
   title: {
     fontSize: 24,
-    marginBottom: 30,
+    marginBottom: 60,
     textAlign: 'center',
   },
   button: {
